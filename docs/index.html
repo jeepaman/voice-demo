@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hello Me – Voice Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; }
+    #user { font-weight: 600; }
+    iframe { width: 360px; height: 580px; border: none; }
+  </style>
+</head>
+<body>
+  <h1>Hello Me – Voice Chatbot</h1>
+  <p>
+    Signed in as: <span id="user"></span>
+    <button id="newId">↻ new ID</button>
+  </p>
+
+  <!-- The widget will appear here -->
+  <div id="widget-container"></div>
+
+  <script>
+    // 1. ensure a stable user ID
+    function getUserId() {
+      let id = localStorage.getItem("helloUserId");
+      if (!id) {
+        id = crypto.randomUUID().slice(0, 8);      // 8-char demo ID
+        localStorage.setItem("helloUserId", id);
+      }
+      return id;
+    }
+
+    function mountWidget(userId) {
+      // clear any previous iframe
+      const container = document.getElementById("widget-container");
+      container.innerHTML = "";
+
+      // 2. build metadata with the user ID
+      const meta = JSON.stringify({ keyword: userId });
+
+      // 3. insert the ElevenLabs widget script dynamically
+      const s = document.createElement("script");
+      s.src  = "https://cdn.elevenlabs.io/agent-widget.js";
+      s.setAttribute("data-agent-id", "agent_01jvd6kr8kegmtzjwas85wdank"); // ← your agent ID
+      s.setAttribute("data-metadata", meta);
+      // optional widget props
+      s.setAttribute("data-hide-header", "false");
+      s.setAttribute("data-show-branding", "false");
+
+      container.appendChild(s);
+      document.getElementById("user").textContent = userId;
+    }
+
+    // initial mount
+    const uid = getUserId();
+    mountWidget(uid);
+
+    // regenerate ID button (for demo)
+    document.getElementById("newId").onclick = () => {
+      localStorage.removeItem("helloUserId");
+      mountWidget(getUserId());
+    };
+  </script>
+</body>
+</html>
