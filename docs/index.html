@@ -1,67 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Hello Me – Voice Demo</title>
-  <style>
-    body { font-family: system-ui, sans-serif; margin: 2rem; }
-    #user { font-weight: 600; }
-    iframe { width: 360px; height: 580px; border: none; }
-  </style>
+    <meta charset="UTF-8" />
+    <title>Hello Me – Voice Demo</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 2rem;
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        #widget-container {
+            margin-top: 1.5rem;
+        }
+
+        elevenlabs-convai {
+            width: 360px;
+            height: 580px;
+            border: none;
+        }
+    </style>
 </head>
 <body>
-  <h1>Hello Me – Voice Chatbot</h1>
-  <p>
-    Signed in as: <span id="user"></span>
-    <button id="newId">↻ new ID</button>
-  </p>
+    <h1>Hello Me – Voice Chatbot</h1>
 
-  <!-- The widget will appear here -->
-  <div id="widget-container"></div>
+    <!-- 🟡  User-ID input -->
+    <label for="uid">Conversation ID&nbsp;</label>
+    <input id="uid" placeholder="enter or generate…" size="10" />
+    <button id="save">Start / Update</button>
+    <button id="rand">↻ random</button>
 
-  <script>
-    // 1. ensure a stable user ID
-    function getUserId() {
-      let id = localStorage.getItem("helloUserId");
-      if (!id) {
-        id = crypto.randomUUID().slice(0, 8);      // 8-char demo ID
-        localStorage.setItem("helloUserId", id);
-      }
-      return id;
-    }
+    <div id="widget-container"></div>
 
-    function mountWidget(userId) {
-      // clear any previous iframe
-      const container = document.getElementById("widget-container");
-      container.innerHTML = "";
+    <!-- 1️⃣  Load the widget script -->
+    <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async></script>
 
-      // 2. build metadata with the user ID
-      const meta = JSON.stringify({ keyword: userId });
+    <script>
+        const AGENT_ID = "agent_01jvd6kr8kegmtzjwas85wdank";          // ← your agent
+        const LLM_URL = "https://voice-demo-pvf6.onrender.com/v1";        // ← your backend
 
-      // 3. insert the ElevenLabs widget script dynamically
-      const s = document.createElement("script");
-      s.src  = "https://cdn.elevenlabs.io/agent-widget.js";
-      s.setAttribute("data-agent-id", "agent_01jvd6kr8kegmtzjwas85wdank");
-      + s.setAttribute("data-llm-base-url", "https://voice-demo-pvf6.onrender.com/v1");
-      s.setAttribute("data-metadata", meta);
-      // optional widget props
-      s.setAttribute("data-hide-header", "false");
-      s.setAttribute("data-show-branding", "false");
+        const inp = document.getElementById("uid");
+        const save = document.getElementById("save");
+        const rand = document.getElementById("rand");
+        const cont = document.getElementById("widget-container");
 
-      container.appendChild(s);
-      document.getElementById("user").textContent = userId;
-    }
+        // ▼ helper: load or create an ID
+        function currentId() {
+            return localStorage.getItem("helloUserId") || "";
+        }
+        function setId(id) {
+            localStorage.setItem("helloUserId", id);
+            inp.value = id;
+        }
+        function freshId() {
+            return crypto.randomUUID().slice(0, 8);
+        }
 
-    // initial mount
-    const uid = getUserId();
-    mountWidget(uid);
+        // ▼ mount or remount the widget
+        function mountWidget(id) {
+            cont.innerHTML = "";                        // clear previous mount
+            if (!id) return;                            // empty field = nothing yet
 
-    // regenerate ID button (for demo)
-    document.getElementById("newId").onclick = () => {
-      localStorage.removeItem("helloUserId");
-      mountWidget(getUserId());
-    };
-  </script>
+            const meta = JSON.stringify({ keyword: id });
+            const w = document.createElement("elevenlabs-convai");
+            w.setAttribute("agent-id", AGENT_ID);
+            w.setAttribute("llm-base-url", LLM_URL);
+            w.setAttribute("metadata", meta);
+            w.setAttribute("hide-header", "false");
+            w.setAttribute("show-branding", "false");
+            cont.appendChild(w);
+        }
+
+        // initial state
+        setId(currentId() || freshId());
+        mountWidget(inp.value);
+
+        // When user clicks “Start / Update”
+        save.onclick = () => {
+            const id = inp.value.trim();
+            if (id) { setId(id); mountWidget(id); }
+        };
+
+        // Random ID generator
+        rand.onclick = () => {
+            const id = freshId();
+            setId(id); mountWidget(id);
+        };
+    </script>
 </body>
 </html>
-"<!-- rebuild -->" 
