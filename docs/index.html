@@ -41,7 +41,8 @@
       // 3. insert the ElevenLabs widget script dynamically
       const s = document.createElement("script");
       s.src  = "https://cdn.elevenlabs.io/agent-widget.js";
-      s.setAttribute("data-agent-id", "agent_01jvd6kr8kegmtzjwas85wdank"); // ← your agent ID
+      s.setAttribute("data-agent-id", "agent_01jvd6kr8kegmtzjwas85wdank");
+      + s.setAttribute("data-llm-base-url", "https://voice-demo-pvf6.onrender.com/v1");
       s.setAttribute("data-metadata", meta);
       // optional widget props
       s.setAttribute("data-hide-header", "false");
